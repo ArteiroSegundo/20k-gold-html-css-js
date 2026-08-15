@@ -192,3 +192,200 @@ body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Drag to scroll carousels */
+.drag-carousel {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.drag-carousel.active {
+  cursor: grabbing;
+}
+
+/* Carousel navigation arrows */
+.carousel-wrapper {
+  position: relative;
+}
+
+.carousel-wrapper .carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #2b2b2b;
+}
+
+.carousel-wrapper .carousel-arrow:hover {
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.carousel-wrapper .carousel-arrow.arrow-left {
+  left: -22px;
+}
+
+.carousel-wrapper .carousel-arrow.arrow-right {
+  right: -22px;
+}
+
+/* Edge fade gradient for carousels */
+.carousel-wrapper::before,
+.carousel-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.carousel-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, var(--carousel-bg, #fff), transparent);
+}
+
+.carousel-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, var(--carousel-bg, #fff), transparent);
+}
+
+/* Drag-carousel overrides to make desktop children behave as slide elements */
+@media (min-width: 768px) {
+  #results-desktop-grid > div {
+    flex-shrink: 0 !important;
+    width: 280px !important;
+    scroll-snap-align: start !important;
+  }
+  
+  #results-desktop-grid > .results-hidden-card {
+    display: flex !important;
+  }
+
+  #testimonials-desktop-grid > div {
+    flex-shrink: 0 !important;
+    width: 380px !important;
+    min-height: 420px !important;
+    height: 420px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    scroll-snap-align: start !important;
+  }
+}
+
+/* Testimonials Uniform Cards & Truncation (Mobile & Desktop) */
+#testimonials-scroller .snap-center {
+  min-height: 420px !important;
+  height: 420px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+#testimonials-scroller .testimonial-body,
+#testimonials-desktop-grid .testimonial-body,
+#testimonials-scroller p.italic,
+#testimonials-desktop-grid p.italic {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 5 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin-bottom: auto !important;
+}
+
+/* ── Minimalist styles for desktop ── */
+@media (min-width: 1024px) {
+  
+  /* Hero title — generous but not gigantic */
+  #hero h1 {
+    font-size: 3.5rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  /* Section headings */
+  #apps h2,
+  #resultados h2,
+  #depoimentos h2,
+  #como-funciona h2,
+  #servicos h2,
+  #comunidade h2,
+  #sobre h2,
+  #contato h2 {
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Card headings */
+  #apps h3,
+  #como-funciona h3,
+  #servicos h3,
+  #sobre h3 {
+    font-size: 1.5rem !important;
+  }
+  
+  /* Body copy — scoped to content sections only */
+  #apps .container > p,
+  #resultados .container > p,
+  #depoimentos .container > p,
+  #como-funciona .container > div > p,
+  #servicos .container > div > p,
+  #sobre .container > div > p {
+    font-size: 0.9rem !important;
+    line-height: 1.6 !important;
+  }
+  
+  /* Content section padding — scoped, NOT Hero/CTA */
+  #apps,
+  #resultados,
+  #depoimentos,
+  #como-funciona,
+  #servicos,
+  #comunidade,
+  #sobre {
+    padding-top: 4.5rem !important;
+    padding-bottom: 4.5rem !important;
+  }
+  
+  /* Hero keeps generous vertical breathing room */
+  #hero {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  
+  /* Card paddings — slightly smaller */
+  #apps .glass-card,
+  #apps .bg-white.rounded-3xl,
+  #como-funciona .bg-white.rounded-3xl,
+  #servicos .bg-white.rounded-3xl {
+    padding: 1.5rem !important;
+  }
+  
+  /* Reduce step-number and service-icon containers */
+  #como-funciona .w-14.h-14,
+  #servicos .w-16.h-16 {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+  #como-funciona .w-14.h-14 svg,
+  #servicos .w-16.h-16 svg {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+  }
+}
+
