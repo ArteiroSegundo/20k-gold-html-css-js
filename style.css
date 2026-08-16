@@ -198,10 +198,13 @@ body {
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+  scroll-behavior: smooth;
 }
 
 .drag-carousel.active {
   cursor: grabbing;
+  scroll-behavior: auto !important;
+  scroll-snap-type: none !important;
 }
 
 /* Carousel navigation arrows */

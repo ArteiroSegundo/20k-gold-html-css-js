@@ -101,16 +101,48 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // --- 3. Results Section (Lightbox & Show All) ---
+  // --- 3. Results Section (Lightbox with Zoom & Show All) ---
   const lightbox = document.getElementById("print-lightbox");
+  const lightboxImgWrapper = document.getElementById("lightbox-img-wrapper");
   const lightboxImg = document.getElementById("lightbox-img");
   const lightboxTitle = document.getElementById("lightbox-title");
   const lightboxApp = document.getElementById("lightbox-app");
   const closeLightboxBtn = document.getElementById("close-lightbox-btn");
+  const zoomHint = document.getElementById("lightbox-zoom-hint");
+
+  let isZoomed = false;
+
+  const resetZoom = () => {
+    isZoomed = false;
+    if (lightboxImg) {
+      lightboxImg.style.transform = "scale(1)";
+    }
+    if (lightboxImgWrapper) {
+      lightboxImgWrapper.style.cursor = "zoom-in";
+    }
+    if (zoomHint) zoomHint.textContent = "Clique para ampliar";
+  };
+
+  const toggleZoom = (e) => {
+    if (e) e.stopPropagation();
+    isZoomed = !isZoomed;
+    if (lightboxImg) {
+      lightboxImg.style.transform = isZoomed ? "scale(1.75)" : "scale(1)";
+    }
+    if (lightboxImgWrapper) {
+      lightboxImgWrapper.style.cursor = isZoomed ? "zoom-out" : "zoom-in";
+    }
+    if (zoomHint) zoomHint.textContent = isZoomed ? "Clique para diminuir" : "Clique para ampliar";
+  };
+
+  if (lightboxImgWrapper) {
+    lightboxImgWrapper.addEventListener("click", toggleZoom);
+  }
 
   const resultCards = document.querySelectorAll(".result-card-btn");
   resultCards.forEach((card) => {
-    card.addEventListener("click", () => {
+    card.addEventListener("click", (e) => {
+      e.stopPropagation();
       const image = card.getAttribute("data-image");
       const title = card.getAttribute("data-title");
       const app = card.getAttribute("data-app");
@@ -120,24 +152,36 @@ document.addEventListener("DOMContentLoaded", () => {
         lightboxImg.alt = title;
         lightboxTitle.textContent = title;
         lightboxApp.textContent = ` • ${app}`;
+        resetZoom();
         lightbox.classList.remove("hidden");
       }
     });
   });
 
+  const closeLightbox = () => {
+    if (lightbox) {
+      lightbox.classList.add("hidden");
+      resetZoom();
+    }
+  };
+
   if (lightbox) {
     lightbox.addEventListener("click", (e) => {
-      if (e.target === lightbox) {
-        lightbox.classList.add("hidden");
+      if (e.target === lightbox || e.target.closest("#close-lightbox-btn")) {
+        closeLightbox();
       }
     });
   }
 
   if (closeLightboxBtn) {
-    closeLightboxBtn.addEventListener("click", () => {
-      lightbox.classList.add("hidden");
-    });
+    closeLightboxBtn.addEventListener("click", closeLightbox);
   }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && lightbox && !lightbox.classList.contains("hidden")) {
+      closeLightbox();
+    }
+  });
 
   const showAllResultsBtn = document.getElementById("show-all-results-btn");
   if (showAllResultsBtn) {
@@ -421,43 +465,90 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- 8. Drag to Scroll Carousel Logic ---
+  // --- 8. Silky Smooth Drag & Momentum Carousel Logic ---
   const sliders = document.querySelectorAll(".drag-carousel");
   
   sliders.forEach((slider) => {
     let isDown = false;
-    let startX;
-    let scrollLeft;
+    let startX = 0;
+    let scrollStart = 0;
+    let velX = 0;
+    let momentumID = null;
     let hasDragged = false;
-    
+    let lastX = 0;
+    let lastTime = 0;
+
+    const cancelMomentum = () => {
+      if (momentumID) {
+        cancelAnimationFrame(momentumID);
+        momentumID = null;
+      }
+    };
+
     slider.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
       isDown = true;
       hasDragged = false;
+      cancelMomentum();
       slider.classList.add("active");
       startX = e.pageX - slider.offsetLeft;
-      scrollLeft = slider.scrollLeft;
-    });
-    
-    slider.addEventListener("mouseleave", () => {
-      isDown = false;
-      slider.classList.remove("active");
-    });
-    
-    slider.addEventListener("mouseup", () => {
-      isDown = false;
-      slider.classList.remove("active");
-    });
-    
-    slider.addEventListener("mousemove", (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      hasDragged = true;
-      const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX) * 1.5;
-      slider.scrollLeft = scrollLeft - walk;
+      scrollStart = slider.scrollLeft;
+      lastX = e.pageX;
+      lastTime = performance.now();
+      velX = 0;
     });
 
-    // Prevent click events (e.g. lightbox) from firing after a drag
+    const endDrag = () => {
+      if (!isDown) return;
+      isDown = false;
+      slider.classList.remove("active");
+
+      // Clear hasDragged after 80ms to permit subsequent clean clicks
+      if (hasDragged) {
+        setTimeout(() => {
+          hasDragged = false;
+        }, 80);
+      }
+
+      // Apply smooth momentum gliding if dragged with velocity
+      if (hasDragged && Math.abs(velX) > 0.5) {
+        const momentumLoop = () => {
+          slider.scrollLeft -= velX;
+          velX *= 0.94; // smooth exponential friction
+          if (Math.abs(velX) > 0.4) {
+            momentumID = requestAnimationFrame(momentumLoop);
+          }
+        };
+        momentumID = requestAnimationFrame(momentumLoop);
+      }
+    };
+
+    window.addEventListener("mouseup", endDrag);
+
+    slider.addEventListener("mousemove", (e) => {
+      if (!isDown) return;
+      const x = e.pageX - slider.offsetLeft;
+      const walk = x - startX;
+      
+      // Only treat as drag if cursor moved more than 8 pixels
+      if (Math.abs(walk) > 8) {
+        hasDragged = true;
+        e.preventDefault();
+        slider.scrollLeft = scrollStart - walk;
+
+        // Track velocity for natural inertia glide
+        const now = performance.now();
+        const dt = now - lastTime;
+        if (dt > 0) {
+          const dx = e.pageX - lastX;
+          velX = (dx / dt) * 16;
+        }
+        lastX = e.pageX;
+        lastTime = now;
+      }
+    });
+
+    // Suppress clicks ONLY when there was an actual drag
     slider.addEventListener("click", (e) => {
       if (hasDragged) {
         e.stopPropagation();
