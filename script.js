@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // --- 3. Results Section (Lightbox with Zoom & Show All) ---
+  // --- 3. Results Section (Lightbox with Interactive Pan & Zoom Lupa) ---
   const lightbox = document.getElementById("print-lightbox");
   const lightboxImgWrapper = document.getElementById("lightbox-img-wrapper");
   const lightboxImg = document.getElementById("lightbox-img");
@@ -115,7 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const resetZoom = () => {
     isZoomed = false;
     if (lightboxImg) {
+      lightboxImg.style.transformOrigin = "center center";
       lightboxImg.style.transform = "scale(1)";
+      lightboxImg.style.transition = "transform 0.3s ease";
     }
     if (lightboxImgWrapper) {
       lightboxImgWrapper.style.cursor = "zoom-in";
@@ -123,20 +125,37 @@ document.addEventListener("DOMContentLoaded", () => {
     if (zoomHint) zoomHint.textContent = "Clique para ampliar";
   };
 
+  const setZoomPosition = (e) => {
+    if (!lightboxImgWrapper || !lightboxImg) return;
+    const rect = lightboxImgWrapper.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    lightboxImg.style.transformOrigin = `${x.toFixed(1)}% ${y.toFixed(1)}%`;
+  };
+
   const toggleZoom = (e) => {
     if (e) e.stopPropagation();
     isZoomed = !isZoomed;
-    if (lightboxImg) {
-      lightboxImg.style.transform = isZoomed ? "scale(1.75)" : "scale(1)";
+    if (lightboxImg && lightboxImgWrapper) {
+      if (isZoomed) {
+        if (e) setZoomPosition(e);
+        lightboxImg.style.transition = "transform 0.25s ease-out, transform-origin 0.08s ease-out";
+        lightboxImg.style.transform = "scale(2.2)";
+        lightboxImgWrapper.style.cursor = "zoom-out";
+        if (zoomHint) zoomHint.textContent = "Clique para diminuir";
+      } else {
+        resetZoom();
+      }
     }
-    if (lightboxImgWrapper) {
-      lightboxImgWrapper.style.cursor = isZoomed ? "zoom-out" : "zoom-in";
-    }
-    if (zoomHint) zoomHint.textContent = isZoomed ? "Clique para diminuir" : "Clique para ampliar";
   };
 
   if (lightboxImgWrapper) {
     lightboxImgWrapper.addEventListener("click", toggleZoom);
+    lightboxImgWrapper.addEventListener("mousemove", (e) => {
+      if (isZoomed) {
+        setZoomPosition(e);
+      }
+    });
   }
 
   const resultCards = document.querySelectorAll(".result-card-btn");
