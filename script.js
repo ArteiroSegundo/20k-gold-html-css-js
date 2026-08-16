@@ -232,11 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, null);
 
     if (body) {
-      body.style.display = "-webkit-box";
-      body.style.webkitBoxOrient = "vertical";
-      body.style.webkitLineClamp = "5";
-      body.style.overflow = "hidden";
-      body.style.textOverflow = "ellipsis";
+      body.classList.add("line-clamp-5");
 
       // Read More Button
       const button = document.createElement("button");
