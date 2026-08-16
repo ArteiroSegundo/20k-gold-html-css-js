@@ -572,7 +572,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, true);
   });
 
-  // --- 9. Carousel Arrow Buttons ---
+  // --- 9. Carousel Arrow Buttons & Dynamic Visibility ---
   document.querySelectorAll(".carousel-wrapper").forEach((wrapper) => {
     const carousel = wrapper.querySelector(".drag-carousel");
     const leftBtn = wrapper.querySelector(".arrow-left");
@@ -584,6 +584,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const firstChild = carousel.querySelector(":scope > *");
       return firstChild ? firstChild.offsetWidth + 24 : 350;
     };
+
+    const updateArrowVisibility = () => {
+      const scrollLeft = carousel.scrollLeft;
+      const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+
+      // Hide left arrow if at start (scrollLeft <= 10)
+      if (scrollLeft <= 10) {
+        leftBtn.classList.add("arrow-hidden");
+      } else {
+        leftBtn.classList.remove("arrow-hidden");
+      }
+
+      // Hide right arrow if at end (scrollLeft >= maxScroll - 10)
+      if (maxScroll > 0 && scrollLeft >= maxScroll - 10) {
+        rightBtn.classList.add("arrow-hidden");
+      } else {
+        rightBtn.classList.remove("arrow-hidden");
+      }
+    };
     
     leftBtn.addEventListener("click", () => {
       carousel.scrollBy({ left: -scrollAmount(), behavior: "smooth" });
@@ -592,6 +611,12 @@ document.addEventListener("DOMContentLoaded", () => {
     rightBtn.addEventListener("click", () => {
       carousel.scrollBy({ left: scrollAmount(), behavior: "smooth" });
     });
+
+    carousel.addEventListener("scroll", updateArrowVisibility, { passive: true });
+    window.addEventListener("resize", updateArrowVisibility, { passive: true });
+
+    // Initial state check
+    updateArrowVisibility();
   });
 });
 
